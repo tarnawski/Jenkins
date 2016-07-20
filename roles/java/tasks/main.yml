@@ -1,0 +1,26 @@
+---
+- name: Add Java Oracle repository into source list
+  apt_repository: repo='ppa:webupd8team/java' update_cache=yes
+
+- name: Accept License
+  debconf:
+    name='oracle-java8-installer'
+    question='shared/accepted-oracle-license-v1-1'
+    value='true'
+    vtype='select'
+
+- name: Install oracle java
+  apt: name=oracle-java8-installer state=latest
+
+- name: Install additional packages
+  apt: name={{ item }}
+  with_items:
+    - maven
+    - ant
+
+- name: Replace line in /usr/lib/jvm/java-8-oracle/jre/lib/security/java.security
+  lineinfile:
+    dest='/usr/lib/jvm/java-8-oracle/jre/lib/security/java.security'
+    line='jdk.certpath.disabledAlgorithms=MD2, RSA keySize < 1024'
+    state=present
+    regexp='^jdk\.certpath\.disabledAlgorithms=MD2,\ MD5,\ RSA\ keySize\ <\ 1024$'
